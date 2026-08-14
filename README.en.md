@@ -29,8 +29,8 @@ DSH sessions are independent: work done in session A is invisible to session B b
 ## Install
 
 ```sh
-dsh plugin --profile web add github:omdsh-dev/dsh-task-relay
-dsh plugin --profile headless add github:omdsh-dev/dsh-task-relay
+dsh plugin --profile web add github:LeslieWylie/dsh-task-relay
+dsh plugin --profile headless add github:LeslieWylie/dsh-task-relay
 ```
 
 Or add to `cordis.yml`:

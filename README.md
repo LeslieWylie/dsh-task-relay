@@ -30,10 +30,10 @@ DSH 的会话生命周期是独立的：会话 A 做完的工作，会话 B 默�
 
 ```sh
 # 安装到 web profile
-dsh plugin --profile web add github:omdsh-dev/dsh-task-relay
+dsh plugin --profile web add github:LeslieWylie/dsh-task-relay
 
 # 安装到 headless profile
-dsh plugin --profile headless add github:omdsh-dev/dsh-task-relay
+dsh plugin --profile headless add github:LeslieWylie/dsh-task-relay
 ```
 
 或者在 `cordis.yml` 中追加：
