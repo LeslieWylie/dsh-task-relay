@@ -37,7 +37,7 @@ Or add to `cordis.yml`:
 
 ```yaml
 - id: task-relay
-  name: '@deepseek-ai/dsh-task-relay'
+  name: 'dsh-task-relay'
 ```
 
 ## Usage

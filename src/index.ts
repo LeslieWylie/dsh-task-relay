@@ -7,16 +7,16 @@
  *
  * 接入方式：在 cordis.yml 追加：
  *   - id: task-relay
- *     name: '@deepseek-ai/dsh-task-relay'
+ *     name: 'dsh-task-relay'
  *
- * @module @deepseek-ai/dsh-task-relay
+ * @module dsh-task-relay
  */
 
 import type { Context } from '@deepseek-ai/cordis'
 import { TaskRelayStore } from './store.ts'
 import { registerTools } from './tools.ts'
 
-export const name = '@deepseek-ai/dsh-task-relay'
+export const name = 'dsh-task-relay'
 
 /** 需要 tools registry 服务。 */
 export const inject = ['tools']

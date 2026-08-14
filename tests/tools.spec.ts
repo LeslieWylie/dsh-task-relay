@@ -39,7 +39,7 @@ function makeCtx(tmpDir: string): {
 describe('dsh-task-relay: plugin contract', () => {
   it('exports cordis plugin contract', () => {
     expect(typeof name).toBe('string')
-    expect(name).toBe('@deepseek-ai/dsh-task-relay')
+    expect(name).toBe('dsh-task-relay')
     expect(inject).toContain('tools')
   })
 

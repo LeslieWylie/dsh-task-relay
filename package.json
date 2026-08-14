@@ -1,5 +1,5 @@
 {
-  "name": "@deepseek-ai/dsh-task-relay",
+  "name": "dsh-task-relay",
   "description": "DSH 跨会话任务接力板：基于持久队列的跨会话/子agent 任务接力 + 交接摘要。Task Relay: cross-session task queue with handoff notes for agents and subagents.",
   "version": "0.0.1",
   "private": true,

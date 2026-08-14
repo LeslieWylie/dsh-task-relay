@@ -40,7 +40,7 @@ dsh plugin --profile headless add github:LeslieWylie/dsh-task-relay
 
 ```yaml
 - id: task-relay
-  name: '@deepseek-ai/dsh-task-relay'
+  name: 'dsh-task-relay'
 ```
 
 ## 使用示例
