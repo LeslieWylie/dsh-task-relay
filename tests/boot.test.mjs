@@ -90,11 +90,19 @@ if (tsc === undefined || !existsSync(tsc)) {
   }
 }
 
+// Probe with the *same* mechanism the load below uses. An earlier version
+// probed `require_.resolve(dep)` and then loaded with `await import(dep)`:
+// CJS resolution honours NODE_PATH, ESM resolution does not, so with NODE_PATH
+// set the guard passed and the import it was guarding still died with an
+// unhandled ERR_MODULE_NOT_FOUND. A guard that asks a different resolver than
+// the code it guards is not a guard.
 const REQUIRED = ['@deepseek-ai/cordis', '@deepseek-ai/dsh-tools', '@deepseek-ai/dsh-system-prompt']
+const harness = new Map()
 for (const dep of REQUIRED) {
-  try { require_.resolve(dep) } catch {
-    console.log(`\nSKIP the runtime half — ${dep} is not resolvable from here.`)
-    console.log('Run it from inside an installed profile:')
+  try { harness.set(dep, await import(dep)) } catch (error) {
+    console.log(`\nSKIP the runtime half — cannot import ${dep} (${error.code ?? 'failed'}).`)
+    console.log('Install the harness packages, or run from inside an installed profile:')
+    console.log('  npm install   # devDependencies pull @deepseek-ai/cordis + dsh-tools')
     console.log('  cd ~/.dsh/profiles/<profile>/node_modules/dsh-task-relay && node tests/boot.test.mjs')
     console.log(`\n${passed} passed, ${failed} failed`)
     process.exit(failed > 0 ? 1 : 0)
@@ -103,13 +111,13 @@ for (const dep of REQUIRED) {
 
 // ── 3. registration through a real Context ──
 console.log('\n--- load this package the way a profile does ---')
-const { Context } = await import('@deepseek-ai/cordis')
+const { Context } = harness.get('@deepseek-ai/cordis')
 const ctx = new Context()
 const warnings = []
 ctx.on('internal/warning', (...args) => warnings.push(args.map(String).join(' ')))
 
 for (const dep of ['@deepseek-ai/dsh-system-prompt', '@deepseek-ai/dsh-tools']) {
-  const mod = await import(dep)
+  const mod = harness.get(dep)
   await ctx.plugin(mod.default ?? mod, {})
 }
 await new Promise((resolve) => setTimeout(resolve, 400))

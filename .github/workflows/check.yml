@@ -31,18 +31,37 @@ jobs:
           fi
 
       # Executes the published entry point through a real cordis registry.
-      # Skips itself where the harness packages are unavailable, which is the
-      # case on a public runner today — kept here so it runs the moment they
-      # are, rather than being remembered only after the next breakage.
+      # This only runs on a public runner because the harness packages are
+      # devDependencies. They are *optional peers* for consumers — which is
+      # exactly why they must be devDeps as well: npm does not auto-install
+      # optional peers, so without this the typecheck could not resolve
+      # `@deepseek-ai/cordis` and every step here failed.
+      #
+      # Note `@deepseek-ai/dsh-tools`'s npm `latest` tag is 0.0.1-rc.1, which is
+      # older than the `next` tag (0.1.0-rc.6) that shipping harnesses run. The
+      # devDeps pin the version users actually have.
       - run: npm run test:boot
 
       # The install path the README promises, exercised as a stranger gets it.
-      - name: a stranger can install this from GitHub
+      #
+      # Installed into a tree that already holds the harness, because that is
+      # what a DSH profile is — the harness packages are peers, so a bare
+      # `npm install <tarball>` into an empty project resolves but cannot
+      # import, the same way a webpack plugin cannot load without webpack.
+      #
+      # This step also guards the peer *range*. v0.1.0 declared
+      # `>=0.0.1-rc.1 <0.2.0`, which by semver's prerelease rule does not match
+      # 0.1.0-rc.6 — a prerelease only satisfies a comparator set when some
+      # comparator shares its major.minor.patch tuple and carries a prerelease
+      # tag. So npm tried to pull 0.0.1-rc.1 alongside and failed with ERESOLVE
+      # on every real profile. Hence the explicit `||` across both lines.
+      - name: a stranger can install this into a profile
         run: |
           npm pack --pack-destination /tmp
           mkdir -p /tmp/consumer && cd /tmp/consumer
           npm init -y >/dev/null
-          npm install /tmp/dsh-task-relay-*.tgz
+          npm install @deepseek-ai/cordis@4.0.1 @deepseek-ai/dsh-tools@0.1.0-rc.6 \
+            /tmp/dsh-task-relay-*.tgz
           node -e "
             const m = require('node:module').createRequire('/tmp/consumer/');
             import(m.resolve('dsh-task-relay')).then((p) => {

@@ -1,6 +1,6 @@
 # 📋 dsh-task-relay
 
-[English](README.en.md)
+[中文](README.md)
 
 DSH cross-session task relay plugin — a **persistent shared task queue** with **handoff notes** for cross-session and subagent coordination.
 
@@ -121,9 +121,39 @@ dsh-task-relay/
 npm install
 npm run typecheck   # tsc --noEmit
 npm test            # vitest run (26 tests)
+npm run test:boot   # executes the built artifact through a real cordis registry
 npm run build       # tsc
 npm run check       # typecheck + test + build
 ```
+
+### Why `lib/` is committed
+
+Because otherwise nobody can install it.
+
+The entry point is `lib/index.js`, produced by `tsc`. pnpm refuses by default to run build scripts for a git dependency, so installing from GitHub failed outright:
+
+```
+ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED  The git-hosted package "dsh-task-relay@0.0.1"
+needs to execute build scripts but is not in the "onlyBuiltDependencies" allowlist.
+```
+
+The package never even reached `node_modules`. All 26 unit tests stayed green throughout, because they import `src/*.ts` and never touch the entry point the package actually publishes. It worked on the author's machine only because the profile used `link:` to point at a locally built copy.
+
+Committing build output buys installability and costs freshness. `tests/boot.test.mjs` and CI each rebuild and diff against the committed `lib/`, failing if it drifts — that is what pays the cost back.
+
+### Why the peer range looks so awkward
+
+The peer range for `@deepseek-ai/dsh-tools` is:
+
+```
+>=0.0.1-rc.1 <0.1.0 || >=0.1.0-rc.1 <0.2.0-0
+```
+
+Verbose, but the intuitive version is wrong. semver's rule is that **a prerelease only satisfies a comparator set if some comparator shares its exact major.minor.patch tuple _and_ carries a prerelease tag of its own.**
+
+So the `>=0.0.1-rc.1 <0.2.0` shipped in v0.1.0 **does not match `0.1.0-rc.6`** — which is the version shipping harnesses actually run (npm's `latest` tag is pinned to the older `0.0.1-rc.1`; the current line lives on `next`). npm therefore tried to install `0.0.1-rc.1` alongside it and failed with ERESOLVE in any real profile.
+
+Note also that the "wildcard prerelease" form `>=0.0.0-0 <0.2.0-0` does not work either — measured, it matches no `0.1.0` prerelease at all. Only an explicit `||` naming both prerelease lines does.
 
 ## Security
 

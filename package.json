@@ -1,7 +1,7 @@
 {
   "name": "dsh-task-relay",
   "description": "DSH 跨会话任务接力板：基于持久队列的跨会话/子agent 任务接力 + 交接摘要。Task Relay: cross-session task queue with handoff notes for agents and subagents.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -18,13 +18,11 @@
     "check": "npm run typecheck && npm test && npm run build"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-invariants": ">=0.0.1-rc.1 <0.2.0",
-    "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1 <0.2.0"
+    "@deepseek-ai/cordis": ">=4.0.1-rc.1 <5.0.0-0",
+    "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1 <0.1.0 || >=0.1.0-rc.1 <0.2.0-0"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/cordis": { "optional": true },
-    "@deepseek-ai/dsh-invariants": { "optional": true },
     "@deepseek-ai/dsh-tools": { "optional": true }
   },
   "dsh": {
@@ -47,6 +45,9 @@
     "tests"
   ],
   "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-system-prompt": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-tools": "0.1.0-rc.6",
     "@types/node": "^26.2.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
