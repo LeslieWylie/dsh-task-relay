@@ -1,8 +1,7 @@
 {
   "name": "dsh-task-relay",
   "description": "DSH 跨会话任务接力板：基于持久队列的跨会话/子agent 任务接力 + 交接摘要。Task Relay: cross-session task queue with handoff notes for agents and subagents.",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.1.0",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -15,13 +14,18 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run tests",
-    "check": "npm run typecheck && npm test && npm run build",
-    "prepack": "npm run build"
+    "test:boot": "node tests/boot.test.mjs",
+    "check": "npm run typecheck && npm test && npm run build"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-invariants": ">=0.0.1-rc.1 <0.2.0",
     "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1 <0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": { "optional": true },
+    "@deepseek-ai/dsh-invariants": { "optional": true },
+    "@deepseek-ai/dsh-tools": { "optional": true }
   },
   "dsh": {
     "bundle": {
@@ -39,7 +43,8 @@
   "files": [
     "lib",
     "src",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "tests"
   ],
   "devDependencies": {
     "@types/node": "^26.2.0",

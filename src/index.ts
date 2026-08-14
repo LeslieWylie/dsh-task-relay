@@ -21,12 +21,25 @@ export const name = 'dsh-task-relay'
 /** 需要 tools registry 服务。 */
 export const inject = ['tools']
 
+/** 插件配置。 */
+export interface TaskRelayConfig {
+  /**
+   * 队列文件所在目录。默认 `$HOME/.dsh/task-relay`。
+   *
+   * The directory holding `queue.json`. Defaults to `$HOME/.dsh/task-relay`.
+   * Point separate profiles at separate roots to keep their queues apart —
+   * and note that a test suite which cannot redirect this has no choice but
+   * to write into the developer's own live queue.
+   */
+  root?: string
+}
+
 /**
  * 插件激活：注册所有工具。
  * store 的初始化在首次工具调用时自动完成（lazy init）。
  */
-export function apply(ctx: Context): void {
-  const store = new TaskRelayStore()
+export function apply(ctx: Context, config: TaskRelayConfig = {}): void {
+  const store = new TaskRelayStore(config.root)
 
   // 注册所有工具
   const tools = registerTools(store)

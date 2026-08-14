@@ -1,0 +1,52 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test
+
+      # `lib/` is committed on purpose: pnpm refuses to run build scripts for a
+      # git dependency by default, so a package whose entry point only exists
+      # after `tsc` is uninstallable from GitHub. Committing the build buys
+      # installability and costs freshness — this is what pays that cost back.
+      - name: committed lib/ matches src/
+        run: |
+          npm run build
+          if [ -n "$(git status --porcelain lib/)" ]; then
+            echo "::error::lib/ is stale. Run 'npm run build' and commit the result."
+            git --no-pager diff --stat lib/
+            exit 1
+          fi
+
+      # Executes the published entry point through a real cordis registry.
+      # Skips itself where the harness packages are unavailable, which is the
+      # case on a public runner today — kept here so it runs the moment they
+      # are, rather than being remembered only after the next breakage.
+      - run: npm run test:boot
+
+      # The install path the README promises, exercised as a stranger gets it.
+      - name: a stranger can install this from GitHub
+        run: |
+          npm pack --pack-destination /tmp
+          mkdir -p /tmp/consumer && cd /tmp/consumer
+          npm init -y >/dev/null
+          npm install /tmp/dsh-task-relay-*.tgz
+          node -e "
+            const m = require('node:module').createRequire('/tmp/consumer/');
+            import(m.resolve('dsh-task-relay')).then((p) => {
+              if (typeof p.apply !== 'function') throw new Error('no apply() export');
+              console.log('resolved and loaded:', Object.keys(p).join(', '));
+            });
+          "

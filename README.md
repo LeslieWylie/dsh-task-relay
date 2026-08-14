@@ -85,6 +85,19 @@ handoff_read
 
 所有数据存储在 `$HOME/.dsh/task-relay/queue.json`，使用原子写入（temp file + rename）防止数据损坏。
 
+改用别的目录，在 bundle 行加 `config.root`：
+
+```yaml
+- id: task-relay
+  name: 'dsh-task-relay'
+  config:
+    root: '~/.dsh/task-relay-staging'
+```
+
+| 配置项 | 默认值 | 说明 |
+|---|---|---|
+| `root` | `$HOME/.dsh/task-relay` | 队列文件所在目录。不同 profile 指向不同目录即可各自独立。 |
+
 ## 架构
 
 ```
@@ -111,9 +124,25 @@ dsh-task-relay/
 npm install
 npm run typecheck   # tsc --noEmit
 npm test            # vitest run (26 tests)
+npm run test:boot   # 通过真实 cordis registry 执行已构建产物
 npm run build       # tsc
 npm run check       # typecheck + test + build
 ```
+
+### 为什么 `lib/` 提交进了仓库
+
+因为不提交就没人装得上。
+
+包的入口是 `lib/index.js`，由 `tsc` 生成。而 pnpm 出于安全考虑，**默认拒绝为 git 依赖执行构建脚本**，所以从 GitHub 安装会直接失败：
+
+```
+ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED  The git-hosted package "dsh-task-relay@0.0.1"
+needs to execute build scripts but is not in the "onlyBuiltDependencies" allowlist.
+```
+
+包甚至没能进入 `node_modules`。而 v0.0.1 期间 26 个单测始终全绿——因为它们 import 的是 `src/*.ts`，**从不碰包对外承诺的那个入口**。作者本机一直正常，只是因为 profile 用 `link:` 指向了一份本地已构建的目录。
+
+提交构建产物换来了可安装性，代价是可能与源码脱节。`tests/boot.test.mjs` 和 CI 各自重新构建一次再比对，脱节就报错——这是为那个代价买的单。
 
 ## 安全边界
 

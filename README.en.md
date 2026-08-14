@@ -82,6 +82,19 @@ handoff_read
 
 All data is stored in `$HOME/.dsh/task-relay/queue.json` with atomic writes (temp file + rename) to prevent corruption.
 
+To put the queue somewhere else, set `config.root` on the bundle row:
+
+```yaml
+- id: task-relay
+  name: 'dsh-task-relay'
+  config:
+    root: '~/.dsh/task-relay-staging'
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `root` | `$HOME/.dsh/task-relay` | Directory holding the queue file. Point separate profiles at separate roots to keep their queues apart. |
+
 ## Architecture
 
 ```
