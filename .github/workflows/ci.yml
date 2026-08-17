@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # `check` is typecheck + vitest + build, in that order. The build step
+      # earns its place on its own: this package ships compiled lib/ and points
+      # exports at it, so a green run over src/ alone would still leave the
+      # published entry point unbuilt and unverified.
+      - run: npm run check
+
+      # vitest.config.ts includes only tests/**/*.spec.ts, so `npm test` — and
+      # therefore `npm run check` — never touches tests/boot.test.mjs. It has to
+      # be invoked by name or the one suite that loads this plugin into a real
+      # cordis Context never runs at all.
+      - run: npm run test:boot
+        env:
+          # Without this the boot suite prints SKIP and exits 0 when a harness
+          # package is missing, turning CI green over an integration check that
+          # never executed. Strict mode makes that unexercised path a failure.
+          # A bare clone without the harness installed can still run it normally.
+          DSH_BOOT_STRICT: '1'

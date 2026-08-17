@@ -105,6 +105,10 @@ for (const dep of REQUIRED) {
     console.log('  npm install   # devDependencies pull @deepseek-ai/cordis + dsh-tools')
     console.log('  cd ~/.dsh/profiles/<profile>/node_modules/dsh-task-relay && node tests/boot.test.mjs')
     console.log(`\n${passed} passed, ${failed} failed`)
+    if (process.env.DSH_BOOT_STRICT === '1') {
+      console.log('DSH_BOOT_STRICT=1: an unexercised runtime half counts as a failure, not a pass.')
+      process.exit(1)
+    }
     process.exit(failed > 0 ? 1 : 0)
   }
 }
