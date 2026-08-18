@@ -32,29 +32,48 @@ jobs:
 
       # Executes the published entry point through a real cordis registry.
       # This only runs on a public runner because the harness packages are
-      # devDependencies. They are *optional peers* for consumers — which is
-      # exactly why they must be devDeps as well: npm does not auto-install
-      # optional peers, so without this the typecheck could not resolve
-      # `@deepseek-ai/cordis` and every step here failed.
+      # devDependencies here as well as peers. They have to be devDeps: the
+      # typecheck and this boot step both resolve `@deepseek-ai/cordis` out of
+      # this repository's own node_modules, and a consumer's install is no help
+      # to that.
       #
       # Note `@deepseek-ai/dsh-tools`'s npm `latest` tag is 0.0.1-rc.1, which is
       # older than the `next` tag (0.1.0-rc.6) that shipping harnesses run. The
       # devDeps pin the version users actually have.
       - run: npm run test:boot
 
-      # The install path the README promises, exercised as a stranger gets it.
+      # A bare install into an empty project — no harness placed there first.
       #
-      # Installed into a tree that already holds the harness, because that is
-      # what a DSH profile is — the harness packages are peers, so a bare
-      # `npm install <tarball>` into an empty project resolves but cannot
-      # import, the same way a webpack plugin cannot load without webpack.
+      # This used to be considered impossible on principle: the harness packages
+      # are peers, so the reasoning went that a stranger must supply them the way
+      # a webpack plugin needs webpack. That was only true because the peers were
+      # marked `optional: true`, and npm does not auto-install optional peers.
+      # They are not optional — lib/index.js imports lib/tools.js, which imports
+      # `@deepseek-ai/dsh-tools` at the top level — so what actually happened was
+      # ERR_MODULE_NOT_FOUND on the first import of a freshly installed package,
+      # while every test here stayed green.
       #
-      # This step also guards the peer *range*. v0.1.0 declared
+      # Dropping the flag is also what the official DeepSeek plugins do
+      # (dsh-tool-str-replace-editor, dsh-skill-filesystem, dsh-fs-local all
+      # declare the harness as required peers), and the duplicate-copy worry it
+      # was guarding against was measured and does not occur: installing this
+      # package into a tree that already holds the harness leaves exactly one
+      # copy of @deepseek-ai/cordis, because npm dedupes a peer that is already
+      # satisfied.
+      - run: node scripts/check-install.mjs
+
+      # The install path the README promises, exercised as a stranger following
+      # it gets it: harness first, then this package.
+      #
+      # Kept alongside the bare install above because it pins explicit harness
+      # versions, and that is what guards the peer *range*. v0.1.0 declared
       # `>=0.0.1-rc.1 <0.2.0`, which by semver's prerelease rule does not match
       # 0.1.0-rc.6 — a prerelease only satisfies a comparator set when some
       # comparator shares its major.minor.patch tuple and carries a prerelease
       # tag. So npm tried to pull 0.0.1-rc.1 alongside and failed with ERESOLVE
-      # on every real profile. Hence the explicit `||` across both lines.
+      # on every real profile. Hence the explicit `||` across both lines. The
+      # bare install cannot catch that regression: left to itself npm resolves
+      # the range to 0.0.1-rc.1 and never exercises the 0.1.x half.
       - name: a stranger can install this into a profile
         run: |
           npm pack --pack-destination /tmp

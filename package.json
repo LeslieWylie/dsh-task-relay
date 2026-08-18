@@ -15,15 +15,12 @@
     "build": "tsc -p tsconfig.json",
     "test": "vitest run tests",
     "test:boot": "node tests/boot.test.mjs",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check-install": "node scripts/check-install.mjs",
+    "check": "npm run typecheck && npm test && npm run build && npm run check-install"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": ">=4.0.1-rc.1 <5.0.0-0",
     "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1 <0.1.0 || >=0.1.0-rc.1 <0.2.0-0"
-  },
-  "peerDependenciesMeta": {
-    "@deepseek-ai/cordis": { "optional": true },
-    "@deepseek-ai/dsh-tools": { "optional": true }
   },
   "dsh": {
     "bundle": {
